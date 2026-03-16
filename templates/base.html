@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quick Match</title>
+<style>
+:root{
+    --bg-1:#0b1f1f;
+    --bg-2:#1b3130;
+    --card:#132725;
+    --card-2:#17302e;
+    --accent:#e7b75f;
+    --accent-2:#2fbf71;
+    --text:#f6f2e8;
+    --muted:#b7c0b8;
+}
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:"Space Grotesk","Segoe UI",Tahoma,sans-serif;
+    color:var(--text);
+    background:
+        radial-gradient(900px 420px at 15% 0%, #274642 0%, transparent 60%),
+        linear-gradient(180deg,var(--bg-1),var(--bg-2));
+    padding:32px;
+}
+.container{
+    max-width:980px;
+    margin:0 auto;
+}
+.title{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:22px;
+}
+.title h1{
+    font-size:28px;
+    margin:0;
+    letter-spacing:0.3px;
+}
+.title .pill{
+    padding:6px 12px;
+    border-radius:999px;
+    background:rgba(231,183,95,0.15);
+    color:var(--accent);
+    font-size:12px;
+    letter-spacing:0.4px;
+}
+.grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:20px;
+}
+@media (min-width: 860px){
+    .grid{grid-template-columns:1fr 1fr;}
+}
+.card{
+    background:linear-gradient(180deg,var(--card),var(--card-2));
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:18px;
+    padding:22px;
+    box-shadow:0 18px 40px rgba(0,0,0,0.22);
+}
+.card h2{
+    margin:0 0 10px 0;
+    font-size:18px;
+}
+.field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:12px;
+}
+label{
+    font-size:12px;
+    color:var(--muted);
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+}
+input{
+    width:100%;
+    padding:10px 12px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.15);
+    background:#0f1f1d;
+    color:var(--text);
+}
+input:focus{
+    outline:none;
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(231,183,95,0.18);
+}
+.actions{
+    display:flex;
+    gap:10px;
+}
+button{
+    border:none;
+    border-radius:10px;
+    padding:10px 14px;
+    font-weight:600;
+    cursor:pointer;
+}
+.primary{
+    background:var(--accent-2);
+    color:#0b1713;
+}
+.ghost{
+    background:transparent;
+    color:var(--text);
+    border:1px solid rgba(255,255,255,0.2);
+}
+.status{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:12px;
+    color:var(--muted);
+}
+.status .badge{
+    background:rgba(47,191,113,0.15);
+    color:#bff2d4;
+    border-radius:999px;
+    padding:4px 10px;
+    font-size:12px;
+}
+.teams{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    gap:12px;
+    margin-top:12px;
+}
+.team{
+    text-align:center;
+}
+.team img{
+    width:84px;
+    height:84px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,0.15);
+    object-fit:cover;
+}
+.vs{
+    color:var(--accent);
+    font-weight:700;
+}
+.meta{
+    margin-top:16px;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+.meta div{
+    background:rgba(255,255,255,0.05);
+    padding:10px;
+    border-radius:10px;
+    font-size:13px;
+}
+.meta b{
+    color:#fff;
+}
+.small{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:6px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="title">
+        <h1>Quick Match Desk</h1>
+        <div class="pill">CrickStars</div>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Create Quick Match</h2>
+            <div class="field">
+                <label for="form_t1name">Team 1</label>
+                <input id="form_t1name" placeholder="e.g. Strikers">
+            </div>
+            <div class="field">
+                <label for="form_t1img">Team 1 Image URL</label>
+                <input id="form_t1img" placeholder="https://">
+            </div>
+            <div class="field">
+                <label for="form_t2name">Team 2</label>
+                <input id="form_t2name" placeholder="e.g. Night Riders">
+            </div>
+            <div class="field">
+                <label for="form_t2img">Team 2 Image URL</label>
+                <input id="form_t2img" placeholder="https://">
+            </div>
+            <div class="field">
+                <label for="form_striker">Striker</label>
+                <input id="form_striker" placeholder="Batsman name">
+            </div>
+            <div class="field">
+                <label for="form_nonstriker">Non-Striker</label>
+                <input id="form_nonstriker" placeholder="Batsman name">
+            </div>
+            <div class="field">
+                <label for="form_bowler">Bowler</label>
+                <input id="form_bowler" placeholder="Bowler name">
+            </div>
+            <div class="actions">
+                <button class="primary" onclick="createMatch()">Create Match</button>
+                <button class="ghost" onclick="clearForm()">Clear</button>
+            </div>
+            <div class="small">Match ID is generated instantly and can be shared.</div>
+        </div>
+
+        <div class="card">
+            <div class="status">
+                <div id="statusText">No match loaded</div>
+                <div class="badge" id="statusBadge">Idle</div>
+            </div>
+
+            <div class="field">
+                <label for="matchIdInput">Match ID</label>
+                <div class="actions">
+                    <input id="matchIdInput" placeholder="Enter ID">
+                    <button class="primary" onclick="loadMatchFromInput()">Load</button>
+                </div>
+            </div>
+
+            <div class="teams">
+                <div class="team">
+                    <img id="t1img" alt="Team 1 logo">
+                    <h3 id="t1">Team 1</h3>
+                </div>
+                <div class="vs">VS</div>
+                <div class="team">
+                    <img id="t2img" alt="Team 2 logo">
+                    <h3 id="t2">Team 2</h3>
+                </div>
+            </div>
+
+            <div class="meta">
+                <div>Striker: <b id="striker">-</b></div>
+                <div>Non-Striker: <b id="nonstriker">-</b></div>
+                <div>Bowler: <b id="bowler">-</b></div>
+                <div>Toss: <b id="toss">-</b></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function getQueryParam(name){
+    const params = new URLSearchParams(location.search);
+    return params.get(name);
+}
+
+let matchId = getQueryParam('id') || '';
+document.getElementById('matchIdInput').value = matchId;
+
+function clearForm(){
+    document.getElementById('form_t1name').value = '';
+    document.getElementById('form_t1img').value = '';
+    document.getElementById('form_t2name').value = '';
+    document.getElementById('form_t2img').value = '';
+    document.getElementById('form_striker').value = '';
+    document.getElementById('form_nonstriker').value = '';
+    document.getElementById('form_bowler').value = '';
+}
+
+function updateStatus(text, badge){
+    document.getElementById('statusText').innerText = text;
+    document.getElementById('statusBadge').innerText = badge;
+}
+
+async function createMatch(){
+    const payload = {
+        team1_name: document.getElementById('form_t1name').value,
+        team1_image: document.getElementById('form_t1img').value,
+        team2_name: document.getElementById('form_t2name').value,
+        team2_image: document.getElementById('form_t2img').value,
+        striker_batsman: document.getElementById('form_striker').value,
+        non_striker_batsman: document.getElementById('form_nonstriker').value,
+        striker_bowler: document.getElementById('form_bowler').value,
+        match_settings: {},
+        toss_info: {toss_winner_team_name: document.getElementById('form_t1name').value, choose_to: "bat"}
+    };
+
+    try{
+        const res = await fetch('/matches/quickmatches/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const text = await res.text();
+
+        if(res.ok && text){
+            const data = JSON.parse(text);
+            matchId = data.match_id;
+            document.getElementById('matchIdInput').value = matchId;
+            const url = new URL(window.location.href);
+            url.searchParams.set('id', matchId);
+            history.replaceState({}, '', url);
+            updateStatus('Match created', 'Ready');
+            load();
+        } else {
+            updateStatus('Create failed', 'Error');
+            alert('Error: ' + res.status + ' - ' + text);
+        }
+    }catch(e){
+        updateStatus('Create failed', 'Error');
+        alert('Error creating match: ' + e.message);
+    }
+}
+
+function loadMatchFromInput(){
+    matchId = document.getElementById('matchIdInput').value.trim();
+    load();
+}
+
+async function load(){
+    if(!matchId) return;
+    try{
+        const res = await fetch(`/matches/quickmatches/${matchId}`);
+        if(!res.ok){
+            updateStatus('Match not found', 'Missing');
+            return;
+        }
+        const d = await res.json();
+
+        const status =
+            d.match_status == 0 ? "Not Started" :
+            d.match_status == 1 ? "Live" :
+            "Finished";
+        updateStatus(status, status);
+
+        document.getElementById('t1').innerText = d.team1_name || 'Team 1';
+        document.getElementById('t2').innerText = d.team2_name || 'Team 2';
+
+        document.getElementById('t1img').src = d.team1_image || "https://via.placeholder.com/80";
+        document.getElementById('t2img').src = d.team2_image || "https://via.placeholder.com/80";
+
+        document.getElementById('striker').innerText = d.striker_batsman || d.current_striker_batsman || '-';
+        document.getElementById('nonstriker').innerText = d.non_striker_batsman || d.current_non_striker_batsman || '-';
+        document.getElementById('bowler').innerText = d.striker_bowler || d.current_striker_bowler || '-';
+
+        const toss = d.toss_info || {};
+        document.getElementById('toss').innerText = toss.toss_winner_team_name ? (toss.toss_winner_team_name + ' chose ' + (toss.choose_to || '')) : '-';
+    }catch(e){
+        updateStatus('Error loading match', 'Error');
+    }
+}
+
+if(matchId) load();
+setInterval(load, 5000);
+</script>
+</body>
+</html>
