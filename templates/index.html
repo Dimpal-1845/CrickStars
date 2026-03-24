@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrickStars - Live Cricket Scoring</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        @keyframes zoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        .animate-zoom {
+            animation: zoom 1s infinite alternate;
+        }
+
+        .live-badge {
+            background-color: #FF4545;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 700;
+            animation: zoom 1s ease-in-out infinite;
+        }
+
+        .btn-primary {
+            background-color: #3B43F2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #2a2fb0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 67, 242, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #ECECEE;
+            color: #030311;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-secondary:hover {
+            background-color: #ddd;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .ball {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .ball-dot {
+            background-color: #f0f0f0;
+            color: #555;
+        }
+
+        .ball-run {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .ball-boundary {
+            background-color: #c8e6c9;
+            color: #1b5e20;
+        }
+
+        .ball-six {
+            background-color: #a5d6a7;
+            color: #1b5e20;
+            font-weight: 700;
+        }
+
+        .ball-wicket {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 2px solid #c62828;
+        }
+
+        .team-section {
+            text-align: center;
+        }
+
+        .team-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 10px;
+            border: 3px solid #3B43F2;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .alert-error {
+            background-color: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background-color: #ECECEE;
+            padding: 5px;
+            border-radius: 15px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background-color: #3B43F2;
+            color: white;
+        }
+
+        .tab-btn.inactive {
+            color: #030311;
+        }
+
+        .hidden-tab {
+            display: none;
+        }
+
+        .tab-content.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-[#FAFAFA]">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="/" class="text-gray-600 hover:text-black transition">
+                    ← Dashboard
+                </a>
+                <h1 class="text-2xl font-bold text-[#030311]">CrickStars</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="refreshPage()" class="text-gray-600 hover:text-black transition">
+                    🔄
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        <!-- Match Header -->
+        <div class="card mb-6" id="matchHeader">
+            <div class="grid grid-cols-5 items-center gap-4 mb-6">
+                <!-- Team 1 -->
+                <div class="team-section col-span-2">
+                    <img id="team1Logo" src="https://via.placeholder.com/60" alt="Team 1" class="team-logo">
+                    <h2 id="team1Name" class="text-lg font-bold text-[#030311]">Team 1</h2>
+                    <p id="team1Score" class="text-3xl font-bold text-[#2EA850] mt-2">0/0</p>
+                    <p id="team1Overs" class="text-sm text-gray-600">(0 ov)</p>
+                </div>
+
+                <!-- VS -->
+                <div class="text-center">
+                    <p class="text-2xl font-bold text-[#3B43F2]">VS</p>
+                </div>
+
+                <!-- Team 2 -->
+                <div class="team-section col-span-2">
+                    <img id="team2Logo" src="https://via.placeholder.com/60" alt="Team 2" class="team-logo">
+                    <h2 id="team2Name" class="text-lg font-bold text-[#030311]">Team 2</h2>
+                    <p id="team2Score" class="text-3xl font-bold text-[#2EA850] mt-2">0/0</p>
+                    <p id="team2Overs" class="text-sm text-gray-600">(0 ov)</p>
+                </div>
+            </div>
+
+            <!-- Match Meta -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 border-t pt-4">
+                <div>
+                    <p class="text-xs text-gray-600 uppercase">Striker</p>
+                    <p id="striker" class="font-bold text-[#030311]">-</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-600 uppercase">Non-Striker</p>
+                    <p id="nonStriker" class="font-bold text-[#030311]">-</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-600 uppercase">Bowler</p>
+                    <p id="bowler" class="font-bold text-[#030311]">-</p>
+                </div>
+                <div>
+                    <p class="text-xs text-gray-600 uppercase">Status</p>
+                    <p id="matchStatus" class="font-bold text-[#3B43F2]">Not Started</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <!-- Tabs -->
+        <div class="tab-container">
+            <button class="tab-btn active" onclick="switchTab('summary')">Summary</button>
+            <button class="tab-btn inactive" onclick="switchTab('scorecard')">Scorecard</button>
+            <button class="tab-btn inactive" onclick="switchTab('controls')">Controls</button>
+        </div>
+
+        <!-- Summary Tab -->
+        <div id="summary" class="tab-content visible">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Create Match -->
+                <div class="card">
+                    <h3 class="text-xl font-bold text-[#030311] mb-4">Create New Match</h3>
+                    <form id="createMatchForm" onsubmit="createMatch(event)">
+                        <div class="mb-4">
+                            <label class="block text-sm font-600 text-gray-700 mb-2">Team 1 Name</label>
+                            <input type="text" id="team1NameInput" placeholder="e.g. Team A" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3B43F2]">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-600 text-gray-700 mb-2">Team 1 Logo URL</label>
+                            <input type="text" id="team1ImgInput" placeholder="https://..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3B43F2]">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-600 text-gray-700 mb-2">Team 2 Name</label>
+                            <input type="text" id="team2NameInput" placeholder="e.g. Team B" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3B43F2]">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-600 text-gray-700 mb-2">Team 2 Logo URL</label>
+                            <input type="text" id="team2ImgInput" placeholder="https://..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3B43F2]">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-600 text-gray-700 mb-2">Striker</label>
+                            <input type="text" id="strikerInput" placeholder="Batsman name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3B43F2]">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-600 text-gray-700 mb-2">Non-Striker</label>
+                            <input type="text" id="nonStrikerInput" placeholder="Batsman name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3B43F2]">
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-sm font-600 text-gray-700 mb-2">Bowler</label>
+                            <input type="text" id="bowlerInput" placeholder="Bowler name" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3B43F2]">
+                        </div>
+                        <button type="submit" class="btn-primary w-full mb-2">Create Match</button>
+                        <button type="button" class="btn-secondary w-full" onclick="clearCreateForm()">Clear</button>
+                    </form>
+                </div>
+
+                <!-- Load Match -->
+                <div class="card">
+                    <h3 class="text-xl font-bold text-[#030311] mb-4">Load Match</h3>
+                    <div class="mb-4">
+                        <label class="block text-sm font-600 text-gray-700 mb-2">Match ID</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="matchIdInput" placeholder="Enter match ID" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3B43F2]">
+                            <button onclick="loadMatch()" class="btn-primary">Load</button>
+                        </div>
+                    </div>
+
+                    <h4 class="font-bold text-[#030311] mb-3">Recent Matches</h4>
+                    <div id="matchesList" class="max-h-64 overflow-y-auto">
+                        <p class="text-gray-500 text-sm">Loading matches...</p>
+                    </div>
+
+                    <button onclick="deleteMatch()" class="btn-primary w-full mt-4" style="background-color: #FF4545;">Delete Selected Match</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scorecard Tab -->
+        <div id="scorecard" class="tab-content hidden-tab">
+            <div class="card">
+                <h3 class="text-xl font-bold text-[#030311] mb-4">Scorecard</h3>
+                <div id="scorecardContent" class="space-y-4">
+                    <p class="text-gray-500 text-center">Load a match to view scorecard</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Tab -->
+        <div id="controls" class="tab-content hidden-tab">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Add Score -->
+                <div class="card">
+                    <h3 class="text-xl font-bold text-[#030311] mb-4">Add Ball/Score</h3>
+                    <div class="mb-4">
+                        <label class="block text-sm font-600 text-gray-700 mb-2">Runs Scored</label>
+                        <input type="number" id="runsInput" placeholder="0" min="0" value="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3B43F2]">
+                    </div>
+
+                    <div class="mb-4 space-y-2">
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="wideCheckbox" class="w-4 h-4">
+                            <span class="text-sm font-600 text-gray-700">Wide</span>
+                        </label>
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="noBallCheckbox" class="w-4 h-4">
+                            <span class="text-sm font-600 text-gray-700">No Ball</span>
+                        </label>
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="byeCheckbox" class="w-4 h-4">
+                            <span class="text-sm font-600 text-gray-700">Bye</span>
+                        </label>
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="legByeCheckbox" class="w-4 h-4">
+                            <span class="text-sm font-600 text-gray-700">Leg Bye</span>
+                        </label>
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="outCheckbox" class="w-4 h-4">
+                            <span class="text-sm font-600 text-gray-700">Out</span>
+                        </label>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-600 text-gray-700 mb-2">Out Type</label>
+                        <input type="text" id="outTypeInput" placeholder="e.g. CatchOut, Bowled" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#3B43F2]">
+                    </div>
+
+                    <button onclick="addScore()" class="btn-primary w-full">Add Score</button>
+                </div>
+
+                <!-- Match Controls -->
+                <div class="card">
+                    <h3 class="text-xl font-bold text-[#030311] mb-4">Match Controls</h3>
+                    <button onclick="swapBatsman()" class="btn-primary w-full mb-2">Swap Batsman</button>
+                    <button onclick="swapBowler()" class="btn-secondary w-full mb-2">Swap Bowler</button>
+                    <button onclick="endInning()" class="btn-secondary w-full mb-2" style="background-color: #FFA500; color: white;">End Inning</button>
+                    <button onclick="startSecondInning()" class="btn-primary w-full" style="background-color: #2EA850;">Start 2nd Inning</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMatchId = null;
+
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            document.getElementById('alertContainer').appendChild(alertDiv);
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden-tab');
+                tab.classList.remove('visible');
+            });
+
+            // Remove active state from all buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('inactive');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.remove('hidden-tab');
+            document.getElementById(tabName).classList.add('visible');
+
+            // Activate button
+            event.target.classList.add('active');
+            event.target.classList.remove('inactive');
+        }
+
+        async function createMatch() {
+            event.preventDefault();
+
+            const payload = {
+                team1_name: document.getElementById('team1NameInput').value || 'Team 1',
+                team1_image: document.getElementById('team1ImgInput').value || 'https://via.placeholder.com/60',
+                team2_name: document.getElementById('team2NameInput').value || 'Team 2',
+                team2_image: document.getElementById('team2ImgInput').value || 'https://via.placeholder.com/60',
+                striker_batsman: document.getElementById('strikerInput').value || 'Striker',
+                non_striker_batsman: document.getElementById('nonStrikerInput').value || 'Non-Striker',
+                striker_bowler: document.getElementById('bowlerInput').value || 'Bowler',
+                team_name: document.getElementById('team1NameInput').value || 'Team 1',
+                match_settings: {},
+                toss_info: { toss_winner_team_name: document.getElementById('team1NameInput').value || 'Team 1', choose_to: 'bat' }
+            };
+
+            try {
+                const res = await fetch('/matches/quickmatches/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    currentMatchId = data.match_id;
+                    document.getElementById('matchIdInput').value = currentMatchId;
+                    showAlert(`Match created! ID: ${currentMatchId}`, 'success');
+                    clearCreateForm();
+                    loadMatch();
+                    loadAllMatches();
+                } else {
+                    showAlert(`Error: ${data.detail || 'Unknown error'}`, 'error');
+                }
+            } catch (e) {
+                showAlert(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        function clearCreateForm() {
+            document.getElementById('createMatchForm').reset();
+        }
+
+        async function loadMatch() {
+            const matchId = document.getElementById('matchIdInput').value.trim();
+            if (!matchId) {
+                showAlert('Please enter a match ID', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/matches/quickmatches/${matchId}`);
+                if (!res.ok) {
+                    showAlert('Match not found', 'error');
+                    return;
+                }
+
+                const data = await res.json();
+                currentMatchId = matchId;
+
+                // Update UI
+                document.getElementById('team1Name').textContent = data.team1_name;
+                document.getElementById('team2Name').textContent = data.team2_name;
+                document.getElementById('team1Logo').src = data.team1_image;
+                document.getElementById('team2Logo').src = data.team2_image;
+                document.getElementById('striker').textContent = data.striker_batsman || data.current_striker_batsman || '-';
+                document.getElementById('nonStriker').textContent = data.non_striker_batsman || data.current_non_striker_batsman || '-';
+                document.getElementById('bowler').textContent = data.striker_bowler || data.current_striker_bowler || '-';
+
+                const status = data.match_status === 0 ? 'Not Started' : data.match_status === 1 ? 'Live' : 'Finished';
+                document.getElementById('matchStatus').textContent = status;
+
+                showAlert('Match loaded successfully', 'success');
+                loadScorecard();
+            } catch (e) {
+                showAlert(`Error loading match: ${e.message}`, 'error');
+            }
+        }
+
+        async function loadAllMatches() {
+            try {
+                const res = await fetch('/matches/quickmatchs/');
+                if (!res.ok) return;
+
+                const data = await res.json();
+                const matches = data.matches || [];
+
+                const html = matches.length === 0
+                    ? '<p class="text-gray-500 text-sm">No matches found</p>'
+                    : matches.map(m => `
+                        <div class="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition" onclick="selectMatch(${m.id})">
+                            <p class="font-bold text-[#030311]">${m.team1_name} vs ${m.team2_name}</p>
+                            <p class="text-xs text-gray-600">ID: ${m.id}</p>
+                        </div>
+                    `).join('');
+
+                document.getElementById('matchesList').innerHTML = html;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function selectMatch(id) {
+            document.getElementById('matchIdInput').value = id;
+            loadMatch();
+        }
+
+        async function deleteMatch() {
+            if (!currentMatchId) {
+                showAlert('No match selected', 'error');
+                return;
+            }
+
+            if (!confirm(`Delete match ${currentMatchId}?`)) return;
+
+            try {
+                const res = await fetch(`/matches/quickmatchs/${currentMatchId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    showAlert('Match deleted', 'success');
+                    currentMatchId = null;
+                    document.getElementById('matchIdInput').value = '';
+                    loadAllMatches();
+                } else {
+                    showAlert('Delete failed', 'error');
+                }
+            } catch (e) {
+                showAlert(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        async function addScore() {
+            if (!currentMatchId) {
+                showAlert('Load a match first', 'error');
+                return;
+            }
+
+            const payload = {
+                runs: parseInt(document.getElementById('runsInput').value || 0),
+                is_wide: document.getElementById('wideCheckbox').checked ? 1 : 0,
+                is_no_ball: document.getElementById('noBallCheckbox').checked ? 1 : 0,
+                is_bye: document.getElementById('byeCheckbox').checked ? 1 : 0,
+                is_leg_bye: document.getElementById('legByeCheckbox').checked ? 1 : 0,
+                is_out: document.getElementById('outCheckbox').checked ? 1 : 0,
+                out_type: document.getElementById('outTypeInput').value || "",
+                team_name: document.getElementById('team1Name').textContent
+            };
+
+            try {
+                const res = await fetch(`/matches/quickmatches/${currentMatchId}/add-score`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    showAlert('Score added', 'success');
+                    document.getElementById('runsInput').value = '0';
+                    document.getElementById('wideCheckbox').checked = false;
+                    document.getElementById('noBallCheckbox').checked = false;
+                    document.getElementById('byeCheckbox').checked = false;
+                    document.getElementById('legByeCheckbox').checked = false;
+                    document.getElementById('outCheckbox').checked = false;
+                    document.getElementById('outTypeInput').value = '';
+                    loadMatch();
+                    loadScorecard();
+                } else {
+                    showAlert('Failed to add score', 'error');
+                }
+            } catch (e) {
+                showAlert(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        async function swapBatsman() {
+            if (!currentMatchId) {
+                showAlert('Load a match first', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/matches/quickmatches/${currentMatchId}/swap-batsman`, { method: 'POST' });
+                if (res.ok) {
+                    showAlert('Batsmen swapped', 'success');
+                    loadMatch();
+                } else {
+                    showAlert('Swap failed', 'error');
+                }
+            } catch (e) {
+                showAlert(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        async function swapBowler() {
+            if (!currentMatchId) {
+                showAlert('Load a match first', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/matches/quickmatches/${currentMatchId}/swap-bowler`, { method: 'POST' });
+                if (res.ok) {
+                    showAlert('Bowlers swapped', 'success');
+                    loadMatch();
+                } else {
+                    showAlert('Swap failed', 'error');
+                }
+            } catch (e) {
+                showAlert(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        async function endInning() {
+            if (!currentMatchId) {
+                showAlert('Load a match first', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/matches/quickmatches/${currentMatchId}/end-inning`, { method: 'POST' });
+                if (res.ok) {
+                    showAlert('Inning ended', 'success');
+                    loadMatch();
+                } else {
+                    showAlert('Failed to end inning', 'error');
+                }
+            } catch (e) {
+                showAlert(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        async function startSecondInning() {
+            if (!currentMatchId) {
+                showAlert('Load a match first', 'error');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/matches/quickmatches/${currentMatchId}/start-second-inning`, { method: 'POST' });
+                if (res.ok) {
+                    showAlert('Second inning started', 'success');
+                    loadMatch();
+                } else {
+                    showAlert('Failed to start second inning', 'error');
+                }
+            } catch (e) {
+                showAlert(`Error: ${e.message}`, 'error');
+            }
+        }
+
+        async function loadScorecard() {
+            if (!currentMatchId) return;
+
+            try {
+                const res = await fetch(`/matches/quickmatches/${currentMatchId}/score`);
+                if (res.ok) {
+                    const data = await res.json();
+                    // Display scorecard data
+                    console.log('Score data:', data);
+                } else {
+                    console.error('Failed to load scorecard');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function goBack() {
+            window.history.back();
+        }
+
+        function refreshPage() {
+            location.reload();
+        }
+
+        // Initial load
+        loadAllMatches();
+        setInterval(loadAllMatches, 30000);
+    </script>
+</body>
+</html>

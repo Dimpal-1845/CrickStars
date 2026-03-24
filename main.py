@@ -1,13 +1,20 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from routers import create_match_route
 
-app = FastAPI()
+app = FastAPI(
+    title="CrickStars",
+    description="Cricket match management system",
+    version="1.0.0",
+    debug=True
+)
+
 # Routers
 app.include_router(create_match_route.router)
+app.include_router(create_match_route.legacy_router)
 
 # Static files (css/js/images)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -23,10 +30,25 @@ app.add_middleware(
     allow_headers=["*"]  
 )
 
-@app.get("/match/quickmatch/{match_id}")
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    """Main dashboard - All matches view"""
+    return templates.TemplateResponse("all_matches.html", {"request": request})
+
+@app.get("/match/{match_id}", response_class=HTMLResponse)
 async def match_detail(request: Request, match_id: int):
     """Match detail page"""
-    return templates.TemplateResponse("base.html", {"request": request, "match_id": match_id})
+    return templates.TemplateResponse("index.html", {"request": request, "match_id": match_id})
+
+@app.get("/live", response_class=HTMLResponse)
+async def live_view(request: Request):
+    """Live match view"""
+    return templates.TemplateResponse("live.html", {"request": request})
+
+@app.get("/health")
+async def health():
+    """Health check endpoint"""
+    return {"status": "healthy", "service": "CrickStars API"}
 '''
 @app.post("/matches/", status_code=status.HTTP_201_CREATED)
 async def create_match(match: CreateMatchRequest, db: db_dependency):

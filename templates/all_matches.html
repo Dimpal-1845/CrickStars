@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Matches - CrickStars</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Montserrat', sans-serif; }
+
+        @keyframes zoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .live-badge {
+            background-color: #FF4545;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 5px;
+            font-size: 10px;
+            font-weight: 700;
+            animation: zoom 1s ease-in-out infinite;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .match-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 4px solid #3B43F2;
+        }
+
+        .match-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            border-left-color: #2EA850;
+        }
+
+        .match-status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-not-started {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .status-live {
+            background-color: #ffebee;
+            color: #c62828;
+            animation: zoom 1s ease-in-out infinite;
+        }
+
+        .status-finished {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .team-badge {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #030311;
+            margin-right: 8px;
+        }
+
+        .btn-primary {
+            background-color: #3B43F2;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background-color: #2a2fb0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 67, 242, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: #ECECEE;
+            color: #030311;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-secondary:hover {
+            background-color: #ddd;
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 2px solid #ECECEE;
+            background: white;
+            color: #030311;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background-color: #3B43F2;
+            color: white;
+            border-color: #3B43F2;
+        }
+
+        .filter-btn:hover {
+            border-color: #3B43F2;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 1px solid #ECECEE;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-box:focus {
+            border-color: #3B43F2;
+            box-shadow: 0 0 0 3px rgba(59, 67, 242, 0.1);
+        }
+
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .matches-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-container {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+
+        .team-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #3B43F2;
+        }
+
+        .match-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .team-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .vs-text {
+            color: #3B43F2;
+            font-weight: 700;
+            margin: 0 8px;
+        }
+
+        .match-score {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2EA850;
+            margin-top: 8px;
+        }
+
+        .match-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #ECECEE;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .meta-label {
+            color: #030311;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #030311;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e0e0e0;
+            border-top-color: #3B43F2;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #3B43F2, #2a2fb0);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            opacity: 0.9;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body class="bg-[#FAFAFA]">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <h1 class="text-2xl font-bold text-[#030311]">CrickStars</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="/match/0" class="btn-primary" style="padding: 8px 16px; font-size: 14px;">+ Create Match</a>
+                <button onclick="refreshMatches()" class="text-gray-600 hover:text-black transition text-lg">🔄</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        <!-- Stats -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value" id="totalMatches">0</div>
+                <div class="stat-label">Total Matches</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #2EA850, #1b5e20);">
+                <div class="stat-value" id="finishedMatches">0</div>
+                <div class="stat-label">Finished</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #FF4545, #c62828);">
+                <div class="stat-value" id="liveMatches">0</div>
+                <div class="stat-label">Live Now</div>
+            </div>
+            <div class="stat-card" style="background: linear-gradient(135deg, #FFA500, #e65100);">
+                <div class="stat-value" id="notStartedMatches">0</div>
+                <div class="stat-label">Not Started</div>
+            </div>
+        </div>
+
+        <!-- Filters & Search -->
+        <div class="card mb-8">
+            <h3 class="font-bold text-lg text-[#030311] mb-4">Filter Matches</h3>
+            <div class="filter-container">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    class="search-box" 
+                    placeholder="Search by team name or date..."
+                    onkeyup="filterMatches()"
+                >
+                <button class="filter-btn active" onclick="filterByStatus('all')">All</button>
+                <button class="filter-btn" onclick="filterByStatus('0')">Not Started</button>
+                <button class="filter-btn" onclick="filterByStatus('1')">Live</button>
+                <button class="filter-btn" onclick="filterByStatus('2')">Finished</button>
+            </div>
+        </div>
+
+        <!-- Matches Display -->
+        <div id="matchesContainer">
+            <div class="loading">Loading matches...</div>
+        </div>
+    </div>
+
+    <script>
+        let allMatches = [];
+        let currentFilter = 'all';
+
+        async function loadAllMatches() {
+            try {
+                const res = await fetch('/matches/quickmatchs/');
+                if (!res.ok) {
+                    showEmpty('Failed to load matches', 'Please try again');
+                    return;
+                }
+
+                const data = await res.json();
+                allMatches = (data.matches || []).slice().sort((a, b) => {
+                    const aDate = a.created_at ? new Date(a.created_at) : new Date(0);
+                    const bDate = b.created_at ? new Date(b.created_at) : new Date(0);
+                    return bDate - aDate; // newest first
+                });
+
+                renderMatches(allMatches);
+                updateStats();
+            } catch (e) {
+                console.error('Error loading matches:', e);
+                showEmpty('Error loading matches', 'Please check your connection');
+            }
+        }
+
+        function updateStats() {
+            const total = allMatches.length;
+            const finished = allMatches.filter(m => m.match_status === 2).length;
+            const live = allMatches.filter(m => m.match_status === 1).length;
+            const notStarted = allMatches.filter(m => m.match_status === 0).length;
+
+            document.getElementById('totalMatches').textContent = total;
+            document.getElementById('finishedMatches').textContent = finished;
+            document.getElementById('liveMatches').textContent = live;
+            document.getElementById('notStartedMatches').textContent = notStarted;
+        }
+
+        function getStatusBadge(status) {
+            if (status === 0) {
+                return '<span class="match-status status-not-started">Not Started</span>';
+            } else if (status === 1) {
+                return '<span class="match-status status-live">● Live</span>';
+            } else if (status === 2) {
+                return '<span class="match-status status-finished">Finished</span>';
+            }
+            return '<span class="match-status status-not-started">Unknown</span>';
+        }
+
+        function getMatchLogo(src) {
+            if (!src || typeof src !== 'string') return 'https://via.placeholder.com/40';
+            let url = src.trim();
+            if (/^(https?:)?\/\//i.test(url)) {
+                return url;
+            }
+            if (/^www\./i.test(url)) {
+                return `https://${url}`;
+            }
+            return 'https://via.placeholder.com/40';
+        }
+
+        function renderMatches(matches) {
+            if (matches.length === 0) {
+                showEmpty('No matches found', 'Create a new match to get started!');
+                return;
+            }
+
+            const html = matches.map(m => `
+                <div class="match-card" onclick="openMatch(${m.id})">
+                    <div class="match-header">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <img src="${getMatchLogo(m.team1_image)}" alt="Team 1" class="team-logo">
+                                <span class="team-badge">${m.team1_name || 'Team 1'}</span>
+                            </div>
+                            <div style="text-align: center; margin: 8px 0; color: #3B43F2; font-size: 18px; font-weight: 700;">VS</div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <img src="${getMatchLogo(m.team2_image)}" alt="Team 2" class="team-logo">
+                                <span class="team-badge">${m.team2_name || 'Team 2'}</span>
+                            </div>
+                        </div>
+                        <div>
+                            ${getStatusBadge(m.match_status)}
+                        </div>
+                    </div>
+
+                    <div class="match-score">
+                        Score: ${m.score || '0/0'}
+                    </div>
+
+                    <div class="match-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Date</span>
+                            <span>${formatDate(m.created_at)}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Overs</span>
+                            <span>${m.overs_played || '0'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Stadium</span>
+                            <span>${m.stadium || '-'}</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 16px;">
+                        <button class="btn-primary" style="flex: 1; font-size: 12px;" onclick="event.stopPropagation(); viewLive(${m.id})">
+                            View Live
+                        </button>
+                        <button class="btn-secondary" style="flex: 1; font-size: 12px;" onclick="event.stopPropagation(); deleteMatch(${m.id})">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('matchesContainer').innerHTML = `<div class="matches-grid">${html}</div>`;
+        }
+
+        function showEmpty(title, message) {
+            document.getElementById('matchesContainer').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <h3>${title}</h3>
+                    <p>${message}</p>
+                    <button class="btn-primary" onclick="window.location.href='/'">Create New Match</button>
+                </div>
+            `;
+        }
+
+        function filterMatches() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            let filtered = allMatches;
+
+            // Filter by status
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(m => m.match_status.toString() === currentFilter);
+            }
+
+            // Filter by search term
+            if (searchTerm) {
+                filtered = filtered.filter(m => 
+                    m.team1_name?.toLowerCase().includes(searchTerm) ||
+                    m.team2_name?.toLowerCase().includes(searchTerm) ||
+                    formatDate(m.created_at).toLowerCase().includes(searchTerm)
+                );
+            }
+
+            renderMatches(filtered);
+        }
+
+        function filterByStatus(status) {
+            currentFilter = status;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            filterMatches();
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        function openMatch(matchId) {
+            window.location.href = `/?id=${matchId}`;
+        }
+
+        function viewLive(matchId) {
+            window.location.href = `/live?id=${matchId}`;
+        }
+
+        async function deleteMatch(matchId) {
+            if (!confirm(`Delete match ${matchId}? This cannot be undone.`)) return;
+
+            try {
+                const res = await fetch(`/matches/quickmatchs/${matchId}`, { method: 'DELETE' });
+                if (res.ok) {
+                    allMatches = allMatches.filter(m => m.id !== matchId);
+                    filterMatches();
+                    updateStats();
+                    alert('Match deleted successfully');
+                } else {
+                    alert('Failed to delete match');
+                }
+            } catch (e) {
+                alert('Error deleting match: ' + e.message);
+            }
+        }
+
+        function refreshMatches() {
+            document.getElementById('matchesContainer').innerHTML = '<div class="loading">Loading matches...</div>';
+            loadAllMatches();
+        }
+
+        // Initial load
+        loadAllMatches();
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadAllMatches, 30000);
+    </script>
+</body>
+</html>

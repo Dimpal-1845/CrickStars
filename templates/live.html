@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Match - CrickStars</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Montserrat', sans-serif; }
+
+        @keyframes zoom {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+
+        .live-badge {
+            background-color: #FF4545;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-weight: 700;
+            animation: zoom 1s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        .ball {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin: 5px;
+        }
+
+        .ball-dot { background-color: #f0f0f0; color: #555; }
+        .ball-run { background-color: #e8f5e9; color: #2e7d32; }
+        .ball-boundary { background-color: #c8e6c9; color: #1b5e20; }
+        .ball-six { background-color: #a5d6a7; color: #1b5e20; }
+        .ball-out { background-color: #ffebee; color: #c62828; border: 2px solid #c62828; }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            background-color: #ECECEE;
+            padding: 5px;
+            border-radius: 15px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background-color: #3B43F2;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-[#FAFAFA]">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="/" class="text-gray-600 hover:text-black transition">← Dashboard</a>
+                <h1 class="text-2xl font-bold text-[#030311]">Live Match</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="live-badge">● LIVE</div>
+                <button onclick="location.reload()" class="text-gray-600 hover:text-black transition text-lg">🔄</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 md:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Main Content -->
+            <div class="lg:col-span-2">
+                <!-- Match Card -->
+                <div class="card mb-6">
+                    <div class="grid grid-cols-5 items-center gap-4">
+                        <!-- Team 1 -->
+                        <div class="text-center col-span-2">
+                            <img id="team1Logo" src="https://via.placeholder.com/60" alt="Team 1" class="w-14 h-14 rounded-full mx-auto border-2 border-[#3B43F2]">
+                            <h2 id="team1Name" class="font-bold text-lg mt-2">Team 1</h2>
+                            <p id="team1Score" class="text-3xl font-bold text-[#2EA850]">0</p>
+                            <p id="team1Overs" class="text-sm text-gray-600">(0 ov)</p>
+                        </div>
+
+                        <!-- VS -->
+                        <div class="text-center">
+                            <p class="text-2xl font-bold text-[#3B43F2]">VS</p>
+                        </div>
+
+                        <!-- Team 2 -->
+                        <div class="text-center col-span-2">
+                            <img id="team2Logo" src="https://via.placeholder.com/60" alt="Team 2" class="w-14 h-14 rounded-full mx-auto border-2 border-[#3B43F2]">
+                            <h2 id="team2Name" class="font-bold text-lg mt-2">Team 2</h2>
+                            <p id="team2Score" class="text-3xl font-bold text-[#2EA850]">0</p>
+                            <p id="team2Overs" class="text-sm text-gray-600">(0 ov)</p>
+                        </div>
+                    </div>
+
+                    <!-- Match Info -->
+                    <div class="border-t mt-6 pt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div>
+                            <p class="text-xs text-gray-600 uppercase">Striker</p>
+                            <p id="striker" class="font-bold">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600 uppercase">Bowler</p>
+                            <p id="bowler" class="font-bold">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600 uppercase">Last Ball</p>
+                            <p id="lastBall" class="font-bold text-[#3B43F2]">-</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-600 uppercase">Required RRR</p>
+                            <p id="rrr" class="font-bold">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tab-container mb-6">
+                    <button class="tab-btn active" onclick="switchTab('overs')">Overs</button>
+                    <button class="tab-btn" onclick="switchTab('scorecard')">Scorecard</button>
+                    <button class="tab-btn" onclick="switchTab('commentary')">Commentary</button>
+                </div>
+
+                <!-- Overs Tab -->
+                <div id="overs-content" class="card">
+                    <h3 class="font-bold text-lg mb-4">Over by Over</h3>
+                    <div id="oversDisplay" class="space-y-4">
+                        <p class="text-gray-500 text-center">Loading overs...</p>
+                    </div>
+                </div>
+
+                <!-- Scorecard Tab -->
+                <div id="scorecard-content" class="card hidden">
+                    <h3 class="font-bold text-lg mb-4">Scorecard</h3>
+                    <p class="text-gray-500">Detailed scorecard view</p>
+                </div>
+
+                <!-- Commentary Tab -->
+                <div id="commentary-content" class="card hidden">
+                    <h3 class="font-bold text-lg mb-4">Ball by Ball</h3>
+                    <div id="commentary" class="space-y-2" style="max-height: 400px; overflow-y: auto;">
+                        <p class="text-gray-500">No updates yet...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="hidden lg:block">
+                <!-- Quick Stats -->
+                <div class="card mb-6">
+                    <h4 class="font-bold text-lg mb-3">Quick Stats</h4>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Total Balls</span>
+                            <span id="totalBalls" class="font-bold">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Total Sixes</span>
+                            <span id="totalSixes" class="font-bold text-red-500">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Total Fours</span>
+                            <span id="totalFours" class="font-bold text-blue-500">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Wickets</span>
+                            <span id="totalWickets" class="font-bold">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Match ID -->
+                <div class="card">
+                    <h4 class="font-bold text-lg mb-3">Match Details</h4>
+                    <p class="text-sm text-gray-600 mb-2">Match</p>
+                    <p id="matchIdDisplay" class="font-bold text-[#3B43F2]" style="word-break: break-all; display:none;">-</p>
+                    <button onclick="loadMatchFromURL()" class="mt-4 w-full bg-[#3B43F2] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#2a2fb0] transition">Load Match</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMatchId = new URLSearchParams(window.location.search).get('id') || null;
+
+        function getSafeLogo(src) {
+            const placeholder = 'https://via.placeholder.com/80';
+            if (!src || typeof src !== 'string') return placeholder;
+            const url = src.trim();
+            if (/^(https?:)?\/\//i.test(url)) {
+                return url.startsWith('//') ? `https:${url}` : url;
+            }
+            if (/^www\./i.test(url)) {
+                return `https://${url}`;
+            }
+            return placeholder;
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('[id$="-content"]').forEach(el => el.classList.add('hidden'));
+            document.querySelector(`#${tabName}-content`).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        async function loadMatchFromURL() {
+            const matchId = prompt('Enter Match ID:');
+            if (!matchId) return;
+
+            currentMatchId = matchId;
+            window.history.replaceState({}, '', `?id=${matchId}`);
+            loadMatch();
+        }
+
+        async function loadMatch() {
+            if (!currentMatchId) return;
+
+            try {
+                const res = await fetch(`/matches/quickmatches/${currentMatchId}`);
+                if (!res.ok) {
+                    alert('Match not found');
+                    return;
+                }
+
+                const data = await res.json();
+
+                document.getElementById('team1Name').textContent = data.team1_name || 'Team 1';
+                document.getElementById('team2Name').textContent = data.team2_name || 'Team 2';
+                document.getElementById('team1Logo').src = getSafeLogo(data.team1_image);
+                document.getElementById('team2Logo').src = getSafeLogo(data.team2_image);
+                document.getElementById('striker').textContent = data.current_striker_batsman || data.striker_batsman || '-';
+                document.getElementById('bowler').textContent = data.current_striker_bowler || data.striker_bowler || '-';
+                document.getElementById('matchIdDisplay').textContent = currentMatchId;
+
+                loadScore();
+            } catch (e) {
+                console.error('Error loading match:', e);
+            }
+        }
+
+        async function loadScore() {
+            if (!currentMatchId) return;
+
+            try {
+                const res = await fetch(`/matches/quickmatches/${currentMatchId}/score`);
+                if (res.ok) {
+                    const data = await res.json();
+                    const runs = data.run_scored || 0;
+                    const wickets = (data.inning_totals && data.inning_totals.wickets) ? data.inning_totals.wickets : 0;
+                    const overs = data.over_counter || 0.0;
+
+                    document.getElementById('team1Score').textContent = runs;
+                    document.getElementById('team2Score').textContent = wickets;
+                    document.getElementById('oversPlayed').textContent = `(${overs} ov)`;
+
+                    document.getElementById('totalBalls').textContent = Math.round(overs * 6);
+                    document.getElementById('totalWickets').textContent = wickets;
+
+                    document.getElementById('totalSixes').textContent = data.inning_totals?.sixes || 0;
+                    document.getElementById('totalFours').textContent = data.inning_totals?.fours || 0;
+                }
+            } catch (e) {
+                console.error('Error loading score:', e);
+            }
+        }
+
+        // Auto-load if match ID in URL
+        if (currentMatchId) {
+            loadMatch();
+            setInterval(loadScore, 5000);
+        }
+    </script>
+</body>
+</html>

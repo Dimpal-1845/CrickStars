@@ -9,7 +9,7 @@ teams = {}
 class Matches(Base):
     __tablename__ = 'matches'
 
-    match_id = Column(BigInteger, primary_key=True, index=True, nullable=False, autoincrement=True)
+    match_id = Column(Integer, primary_key=True, index=True, nullable=False, autoincrement=True)
     nb = Column(Boolean, nullable=False, default=False)   # No Ball allowed
     wd = Column(Boolean, nullable=False, default=False)   # Wide Ball allowed
     bye = Column(Boolean, nullable=False, default=False)
@@ -37,7 +37,7 @@ class Matches(Base):
 class Users(Base):
     __tablename__ = 'users'
 
-    user_id = Column(BigInteger, primary_key=True, index=True, nullable=False, autoincrement=True)
+    user_id = Column(Integer, primary_key=True, index=True, nullable=False, autoincrement=True)
     fname = Column(String(255), default=None)
     lname = Column(String(255), default=None)
     # store profile filename/URL as text (was LargeBinary which expects bytes)
@@ -64,7 +64,7 @@ class Users(Base):
 class QuickMatch(Base):
     __tablename__ = 'qm_match'
 
-    id = Column(BigInteger, primary_key=True, index=True, nullable=False, autoincrement=True)
+    id = Column(Integer, primary_key=True, index=True, nullable=False, autoincrement=True)
     match_status = Column(Integer, nullable=False, default=0)
     team1_name = Column(String(255), nullable=False)
     team1_image = Column(String(255), default=None)
@@ -82,7 +82,7 @@ class QuickMatch(Base):
 class Ball(Base):
     __tablename__ = "balls"
 
-    ball_id = Column(BigInteger, primary_key=True, autoincrement=True)
+    ball_id = Column(Integer, primary_key=True, autoincrement=True)
     match_id = Column(BigInteger, nullable=False)
     striker_batsman_id = Column(BigInteger, nullable=False)
     non_striker_batsman_id = Column(BigInteger, nullable=False)
@@ -124,27 +124,28 @@ class Ball(Base):
 class Teams(Base):
     __tablename__ = 'teams'
 
-    team_id = Column(BigInteger, primary_key=True, index=True, nullable=False, autoincrement=True)
-    match_id = Column(BigInteger, ForeignKey("matches.match_id"), nullable=False)
+    team_id = Column(Integer, primary_key=True, index=True, nullable=False, autoincrement=True)
+    match_id = Column(Integer, ForeignKey("matches.match_id"), nullable=False)
     # store logo as a URL/path string instead of raw binary for simplicity; 
     team_logo = Column(String(255), default=None)
     deleted_at = Column(DateTime, default=None)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-'''class Players(Base):
+class Players(Base):
     __tablename__ = 'players'
 
-    players_id = Column(BigInteger, primary_key=True, index=True, nullable=False, autoincrement=True)
+    players_id = Column(Integer, primary_key=True, index=True, nullable=False, autoincrement=True)
     team_id = Column(BigInteger, ForeignKey("teams.team_id"), nullable=True)
     name = Column(String(255), nullable=False)
     batting_style = Column(String(255), nullable=True)
-    bowling_style = Column(String(255), nullable=True)'''
+    bowling_style = Column(String(255), nullable=True)
+
 
 class Batting(Base):
     __tablename__ = 'batting'
 
-    id = Column(BigInteger, primary_key=True, index=True, nullable=False, autoincrement=True)
+    id = Column(Integer, primary_key=True, index=True, nullable=False, autoincrement=True)
     batting_style_name = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -152,7 +153,7 @@ class Batting(Base):
 class Bowling(Base):
     __tablename__ = 'bowling'
 
-    id = Column(BigInteger, primary_key=True, index=True, nullable=False, autoincrement=True)
+    id = Column(Integer, primary_key=True, index=True, nullable=False, autoincrement=True)
     bowling_style_name = Column(String(255), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -160,8 +161,8 @@ class Bowling(Base):
 class Cities(Base):
     __tablename__ = 'cities'
 
-    id = Column(BigInteger , primary_key=True, index=True, nullable=False, autoincrement=True)
-    state_id =  Column(BigInteger , ForeignKey("states.state_id") , nullable=False)
+    id = Column(Integer , primary_key=True, index=True, nullable=False, autoincrement=True)
+    state_id =  Column(Integer , ForeignKey("states.state_id") , nullable=False)
     city_name = Column(String(255) , nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -169,7 +170,7 @@ class Cities(Base):
 class States(Base):
     __tablename__ = 'states'
 
-    state_id = Column(BigInteger , primary_key=True, index=True, nullable=False, autoincrement=True)
+    state_id = Column(Integer , primary_key=True, index=True, nullable=False, autoincrement=True)
     state_name = Column(String(255) , nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -177,7 +178,7 @@ class States(Base):
 class Innings(Base):
     __tablename__ = 'innings'
 
-    inning_id = Column(BigInteger , primary_key=True, index=True, nullable=False, autoincrement=True)
+    inning_id = Column(Integer , primary_key=True, index=True, nullable=False, autoincrement=True)
     match_id = Column(BigInteger, ForeignKey("matches.match_id"), nullable=False)
     first_inning_id = Column(BigInteger , nullable=False) 
     second_inning_id = Column(BigInteger , nullable=False)
@@ -186,7 +187,7 @@ class Innings(Base):
 
 class Toss(Base):
     __tablename__ = 'toss'
-    toss_id = Column(BigInteger , primary_key=True, index=True, nullable=False, autoincrement=True)
+    toss_id = Column(Integer , primary_key=True, index=True, nullable=False, autoincrement=True)
     match_id = Column(BigInteger, ForeignKey("matches.match_id"), nullable=False)
     toss_winner_team_id = Column(BigInteger, nullable=False)
     chosen_to = Column(String(255) , nullable=False)
@@ -237,7 +238,7 @@ class Playing_roles(Base):
 class QMBall(Base):
     __tablename__ = "qm_balls"
 
-    ball_id = Column(BigInteger, primary_key=True, autoincrement=True)
+    ball_id = Column(Integer, primary_key=True, autoincrement=True)
     match_id = Column(BigInteger, nullable=False)
     striker_batsman = Column(String(255), nullable=False)
     non_striker_batsman = Column(String(255), nullable=False)
@@ -277,9 +278,8 @@ class QMBall(Base):
 class Share_team(Base):
     __tablename__ = 'share_team'
      
-    id = Column(BigInteger, primary_key=True, index= True, nullable=False, autoincrement=True)
-    id = Column(BigInteger , primary_key=True, index=True, nullable=False, autoincrement=True)
-    owner_id = Column(BigInteger , nullable=False)
+    id = Column(Integer, primary_key=True, index=True, nullable=False, autoincrement=True)
+    owner_id = Column(Integer , nullable=False)
     share_with_id = Column(BigInteger , nullable=False)
     team_id = Column(BigInteger , nullable=False)
     new_team_id = Column(BigInteger , nullable=False)
@@ -289,7 +289,7 @@ class Share_team(Base):
 class TeamMaster(Base):
     __tablename__ = 'team_masters'
 
-    team_id = Column(BigInteger, primary_key=True, index=True, nullable=False, autoincrement=True)
+    team_id = Column(Integer, primary_key=True, index=True, nullable=False, autoincrement=True)
     team_name = Column(String(255), nullable=False)
     state = Column(String(255), nullable=False)
     city = Column(String(255), nullable=False)
@@ -303,7 +303,7 @@ class TeamMaster(Base):
 class TeamPlayers(Base):
     __tablename__ = 'team_players'
 
-    team_player_id = Column(BigInteger, primary_key=True, index=True, nullable=False, autoincrement=True)
+    team_player_id = Column(Integer, primary_key=True, index=True, nullable=False, autoincrement=True)
     team_id = Column(BigInteger, nullable=False)
     player_id = Column(BigInteger, nullable=False)
     first_name = Column(String(255), default=None)
@@ -316,7 +316,7 @@ class TeamPlayers(Base):
 class TeamPlayersSearch(Base):
     __tablename__ = 'team_players_search'
 
-    id = Column(BigInteger, primary_key=True, index=True, nullable=False, autoincrement=True)
+    id = Column(Integer, primary_key=True, index=True, nullable=False, autoincrement=True)
     user_id = Column(BigInteger, nullable=False)
     team_name = Column(String(255), nullable=False)
     player_name = Column(String(255), nullable=False)

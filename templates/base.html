@@ -57,6 +57,9 @@ body{
 @media (min-width: 860px){
     .grid{grid-template-columns:1fr 1fr;}
 }
+@media (min-width: 1200px){
+    .grid{grid-template-columns:1fr 1fr 1fr;}
+}
 .card{
     background:linear-gradient(180deg,var(--card),var(--card-2));
     border:1px solid rgba(255,255,255,0.08);
@@ -67,6 +70,22 @@ body{
 .card h2{
     margin:0 0 10px 0;
     font-size:18px;
+}
+.alert{
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:12px;
+    font-size:13px;
+}
+.alert-success{
+    background:rgba(47,191,113,0.15);
+    color:#bff2d4;
+    border:1px solid rgba(47,191,113,0.3);
+}
+.alert-error{
+    background:rgba(239,68,68,0.15);
+    color:#fca5a5;
+    border:1px solid rgba(239,68,68,0.3);
 }
 .field{
     display:flex;
@@ -96,6 +115,7 @@ input:focus{
 .actions{
     display:flex;
     gap:10px;
+    flex-wrap:wrap;
 }
 button{
     border:none;
@@ -103,15 +123,35 @@ button{
     padding:10px 14px;
     font-weight:600;
     cursor:pointer;
+    font-size:12px;
+    transition:all 0.2s ease;
+}
+button:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 12px rgba(0,0,0,0.3);
+}
+button:disabled{
+    opacity:0.5;
+    cursor:not-allowed;
+    transform:none;
 }
 .primary{
     background:var(--accent-2);
+    color:#0b1713;
+}
+.secondary{
+    background:var(--accent);
     color:#0b1713;
 }
 .ghost{
     background:transparent;
     color:var(--text);
     border:1px solid rgba(255,255,255,0.2);
+}
+.danger{
+    background:rgba(239,68,68,0.2);
+    color:#fca5a5;
+    border:1px solid rgba(239,68,68,0.3);
 }
 .status{
     display:flex;
@@ -169,6 +209,34 @@ button{
     color:var(--muted);
     margin-top:6px;
 }
+.matches-list{
+    max-height:400px;
+    overflow-y:auto;
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:10px;
+    padding:12px;
+}
+.match-item{
+    padding:10px;
+    margin-bottom:8px;
+    background:rgba(255,255,255,0.05);
+    border-radius:8px;
+    cursor:pointer;
+    border-left:3px solid var(--accent-2);
+    transition:all 0.2s ease;
+}
+.match-item:hover{
+    background:rgba(255,255,255,0.08);
+    border-left-color:var(--accent);
+}
+.match-item-title{
+    font-weight:600;
+    margin-bottom:4px;
+}
+.match-item-status{
+    font-size:12px;
+    color:var(--muted);
+}
 </style>
 </head>
 <body>
@@ -181,6 +249,7 @@ button{
     <div class="grid">
         <div class="card">
             <h2>Create Quick Match</h2>
+            <div id="alertContainer"></div>
             <div class="field">
                 <label for="form_t1name">Team 1</label>
                 <input id="form_t1name" placeholder="e.g. Strikers">
@@ -225,19 +294,19 @@ button{
             <div class="field">
                 <label for="matchIdInput">Match ID</label>
                 <div class="actions">
-                    <input id="matchIdInput" placeholder="Enter ID">
+                    <input id="matchIdInput" placeholder="Enter ID" style="flex:1;">
                     <button class="primary" onclick="loadMatchFromInput()">Load</button>
                 </div>
             </div>
 
             <div class="teams">
                 <div class="team">
-                    <img id="t1img" alt="Team 1 logo">
+                    <img id="t1img" src="https://via.placeholder.com/80" alt="Team 1 logo">
                     <h3 id="t1">Team 1</h3>
                 </div>
                 <div class="vs">VS</div>
                 <div class="team">
-                    <img id="t2img" alt="Team 2 logo">
+                    <img id="t2img" src="https://via.placeholder.com/80" alt="Team 2 logo">
                     <h3 id="t2">Team 2</h3>
                 </div>
             </div>
@@ -246,20 +315,80 @@ button{
                 <div>Striker: <b id="striker">-</b></div>
                 <div>Non-Striker: <b id="nonstriker">-</b></div>
                 <div>Bowler: <b id="bowler">-</b></div>
-                <div>Toss: <b id="toss">-</b></div>
+                <div>Status: <b id="matchStatus">-</b></div>
             </div>
+
+            <div class="actions" style="margin-top:16px;">
+                <button class="secondary" onclick="viewAllMatches()" style="flex:1;">All Matches</button>
+                <button class="danger" onclick="deleteCurrentMatch()">Delete</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Scoreboard</h2>
+            <div id="scoreAlert" style="margin-bottom:12px;"></div>
+            <div class="field">
+                <label for="scoreRuns">Runs</label>
+                <input id="scoreRuns" type="number" min="0" value="0">
+            </div>
+            <div class="field">
+                <label><input id="scoreWide" type="checkbox"> Wide</label>
+            </div>
+            <div class="field">
+                <label><input id="scoreNoBall" type="checkbox"> No ball</label>
+            </div>
+            <div class="field">
+                <label><input id="scoreBye" type="checkbox"> Bye</label>
+            </div>
+            <div class="field">
+                <label><input id="scoreLegBye" type="checkbox"> Leg bye</label>
+            </div>
+            <div class="field">
+                <label><input id="scoreOut" type="checkbox"> Out</label>
+            </div>
+            <div class="field">
+                <label for="scoreOutType">Out type</label>
+                <input id="scoreOutType" placeholder="e.g. CatchOut">
+            </div>
+            <div class="actions">
+                <button class="primary" onclick="addScore()" style="flex:1;">Add Score</button>
+                <button class="secondary" onclick="swapBatsman()">Swap Batsman</button>
+                <button class="secondary" onclick="swapBowler()">Swap Bowler</button>
+                <button class="danger" onclick="endInning()">End Inning</button>
+            </div>
+            <div class="small" id="scoreStatus">Use the scoreboard to record balls.</div>
+        </div>
+
+        <div class="card">
+            <h2>All Matches</h2>
+            <div id="matchesContainer">
+                <p style="color:var(--muted); text-align:center;">Loading matches...</p>
+            </div>
+            <button class="primary" onclick="loadAllMatches()" style="width:100%; margin-top:12px;">Refresh</button>
         </div>
     </div>
 </div>
 
 <script>
+let matchId = '';
+
 function getQueryParam(name){
     const params = new URLSearchParams(location.search);
     return params.get(name);
 }
 
-let matchId = getQueryParam('id') || '';
-document.getElementById('matchIdInput').value = matchId;
+matchId = getQueryParam('id') || '';
+if(matchId) document.getElementById('matchIdInput').value = matchId;
+
+function showAlert(message, type = 'success'){
+    const container = document.getElementById('alertContainer');
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type}`;
+    alert.textContent = message;
+    container.innerHTML = '';
+    container.appendChild(alert);
+    setTimeout(() => alert.remove(), 5000);
+}
 
 function clearForm(){
     document.getElementById('form_t1name').value = '';
@@ -277,16 +406,25 @@ function updateStatus(text, badge){
 }
 
 async function createMatch(){
+    const t1 = document.getElementById('form_t1name').value.trim();
+    const t2 = document.getElementById('form_t2name').value.trim();
+    
+    if(!t1 || !t2){
+        showAlert('Team names are required', 'error');
+        return;
+    }
+
     const payload = {
-        team1_name: document.getElementById('form_t1name').value,
+        team1_name: t1,
         team1_image: document.getElementById('form_t1img').value,
-        team2_name: document.getElementById('form_t2name').value,
+        team2_name: t2,
         team2_image: document.getElementById('form_t2img').value,
-        striker_batsman: document.getElementById('form_striker').value,
-        non_striker_batsman: document.getElementById('form_nonstriker').value,
-        striker_bowler: document.getElementById('form_bowler').value,
+        striker_batsman: document.getElementById('form_striker').value || 'Striker_1',
+        non_striker_batsman: document.getElementById('form_nonstriker').value || 'Batsman_2',
+        striker_bowler: document.getElementById('form_bowler').value || 'Bowler_1',
+        team_name: t1,
         match_settings: {},
-        toss_info: {toss_winner_team_name: document.getElementById('form_t1name').value, choose_to: "bat"}
+        toss_info: {toss_winner_team_name: t1, choose_to: "bat"}
     };
 
     try{
@@ -295,6 +433,7 @@ async function createMatch(){
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(payload)
         });
+        
         const text = await res.text();
 
         if(res.ok && text){
@@ -304,15 +443,14 @@ async function createMatch(){
             const url = new URL(window.location.href);
             url.searchParams.set('id', matchId);
             history.replaceState({}, '', url);
-            updateStatus('Match created', 'Ready');
-            load();
+            showAlert(`Match created! ID: ${matchId}`, 'success');
+            clearForm();
+            setTimeout(load, 500);
         } else {
-            updateStatus('Create failed', 'Error');
-            alert('Error: ' + res.status + ' - ' + text);
+            showAlert(`Error: ${res.status} - ${text}`, 'error');
         }
     }catch(e){
-        updateStatus('Create failed', 'Error');
-        alert('Error creating match: ' + e.message);
+        showAlert(`Error creating match: ${e.message}`, 'error');
     }
 }
 
@@ -334,11 +472,12 @@ async function load(){
         const status =
             d.match_status == 0 ? "Not Started" :
             d.match_status == 1 ? "Live" :
-            "Finished";
-        updateStatus(status, status);
+            d.match_status == 2 ? "Finished" : "Unknown";
+        updateStatus(`${d.team1_name || 'Team 1'} vs ${d.team2_name || 'Team 2'}`, status);
 
         document.getElementById('t1').innerText = d.team1_name || 'Team 1';
         document.getElementById('t2').innerText = d.team2_name || 'Team 2';
+        document.getElementById('matchStatus').innerText = status;
 
         document.getElementById('t1img').src = d.team1_image || "https://via.placeholder.com/80";
         document.getElementById('t2img').src = d.team2_image || "https://via.placeholder.com/80";
@@ -346,16 +485,208 @@ async function load(){
         document.getElementById('striker').innerText = d.striker_batsman || d.current_striker_batsman || '-';
         document.getElementById('nonstriker').innerText = d.non_striker_batsman || d.current_non_striker_batsman || '-';
         document.getElementById('bowler').innerText = d.striker_bowler || d.current_striker_bowler || '-';
-
-        const toss = d.toss_info || {};
-        document.getElementById('toss').innerText = toss.toss_winner_team_name ? (toss.toss_winner_team_name + ' chose ' + (toss.choose_to || '')) : '-';
+        updateScoreDisplay();
     }catch(e){
         updateStatus('Error loading match', 'Error');
+        console.error(e);
     }
 }
 
+async function loadAllMatches(){
+    try{
+        const res = await fetch('/matches/quickmatchs/');
+        if(!res.ok){
+            document.getElementById('matchesContainer').innerHTML = '<p style="color:var(--muted);">Failed to load matches</p>';
+            return;
+        }
+        const data = await res.json();
+        const matches = data.matches || [];
+
+        if(matches.length === 0){
+            document.getElementById('matchesContainer').innerHTML = '<p style="color:var(--muted); text-align:center;">No matches found</p>';
+            return;
+        }
+
+        const html = matches.map(m => `
+            <div class="match-item" onclick="selectMatch(${m.id})">
+                <div class="match-item-title">${m.team1_name} vs ${m.team2_name}</div>
+                <div class="match-item-status">
+                    ID: ${m.id} | Status: ${m.match_status == 0 ? 'Not Started' : m.match_status == 1 ? 'Live' : 'Finished'}
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('matchesContainer').innerHTML = html;
+    }catch(e){
+        document.getElementById('matchesContainer').innerHTML = `<p style="color:var(--muted);">Error: ${e.message}</p>`;
+        console.error(e);
+    }
+}
+
+function selectMatch(id){
+    matchId = id;
+    document.getElementById('matchIdInput').value = id;
+    const url = new URL(window.location.href);
+    url.searchParams.set('id', id);
+    history.replaceState({}, '', url);
+    load();
+}
+
+async function deleteCurrentMatch(){
+    if(!matchId){
+        showAlert('No match selected', 'error');
+        return;
+    }
+
+    if(!confirm(`Delete match ${matchId}? This cannot be undone.`)){
+        return;
+    }
+
+    try{
+        const res = await fetch(`/matches/quickmatchs/${matchId}`, {
+            method: 'DELETE'
+        });
+
+        if(res.ok){
+            showAlert('Match deleted successfully', 'success');
+            matchId = '';
+            document.getElementById('matchIdInput').value = '';
+            updateStatus('No match loaded', 'Idle');
+            setTimeout(loadAllMatches, 500);
+        } else {
+            showAlert(`Delete failed: ${res.status}`, 'error');
+        }
+    }catch(e){
+        showAlert(`Error deleting match: ${e.message}`, 'error');
+    }
+}
+
+function showScoreAlert(message, type = 'success'){
+    const container = document.getElementById('scoreAlert');
+    container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+    setTimeout(() => container.innerHTML = '', 5000);
+}
+
+async function addScore(){
+    if(!matchId){
+        showScoreAlert('Select a match first', 'error');
+        return;
+    }
+
+    const payload = {
+        runs: parseInt(document.getElementById('scoreRuns').value || 0, 10),
+        is_wide: document.getElementById('scoreWide').checked ? 1 : 0,
+        is_no_ball: document.getElementById('scoreNoBall').checked ? 1 : 0,
+        is_bye: document.getElementById('scoreBye').checked ? 1 : 0,
+        is_leg_bye: document.getElementById('scoreLegBye').checked ? 1 : 0,
+        is_out: document.getElementById('scoreOut').checked ? 1 : 0,
+        out_type: document.getElementById('scoreOutType').value || "",
+        team_name: document.getElementById('t1').innerText || "",
+    };
+
+    try {
+        const res = await fetch(`/matches/quickmatches/${matchId}/add-score`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+
+        if(!res.ok){
+            const text = await res.text();
+            showScoreAlert(`Failed to add score: ${res.status} ${text}`, 'error');
+            return;
+        }
+
+        showScoreAlert('Score recorded', 'success');
+        updateScoreDisplay();
+    } catch(e){
+        showScoreAlert(`Error: ${e.message}`, 'error');
+    }
+}
+
+async function swapBatsman(){
+    if(!matchId){
+        showScoreAlert('Select a match first', 'error');
+        return;
+    }
+
+    try{
+        const res = await fetch(`/matches/quickmatches/${matchId}/swap-batsman`, { method: 'POST' });
+        if(!res.ok){
+            const text = await res.text();
+            showScoreAlert(`Swap failed: ${res.status} ${text}`, 'error');
+            return;
+        }
+        showScoreAlert('Batsmen swapped', 'success');
+        updateScoreDisplay();
+    }catch(e){
+        showScoreAlert(`Error: ${e.message}`, 'error');
+    }
+}
+
+async function swapBowler(){
+    if(!matchId){
+        showScoreAlert('Select a match first', 'error');
+        return;
+    }
+
+    try{
+        const res = await fetch(`/matches/quickmatches/${matchId}/swap-bowler`, { method: 'POST' });
+        if(!res.ok){
+            const text = await res.text();
+            showScoreAlert(`Swap failed: ${res.status} ${text}`, 'error');
+            return;
+        }
+        showScoreAlert('Bowlers swapped', 'success');
+        updateScoreDisplay();
+    }catch(e){
+        showScoreAlert(`Error: ${e.message}`, 'error');
+    }
+}
+
+async function endInning(){
+    if(!matchId){
+        showScoreAlert('Select a match first', 'error');
+        return;
+    }
+
+    try{
+        const res = await fetch(`/matches/quickmatches/${matchId}/end-inning`, { method: 'POST' });
+        if(!res.ok){
+            const text = await res.text();
+            showScoreAlert(`End inning failed: ${res.status} ${text}`, 'error');
+            return;
+        }
+        showScoreAlert('Inning ended', 'success');
+        updateScoreDisplay();
+    }catch(e){
+        showScoreAlert(`Error: ${e.message}`, 'error');
+    }
+}
+
+async function updateScoreDisplay(){
+    if(!matchId) return;
+    try {
+        const res = await fetch(`/matches/quickmatches/${matchId}/score`);
+        if(!res.ok){
+            return;
+        }
+        const data = await res.json();
+        document.getElementById('scoreStatus').innerText = `Runs: ${data.run_scored || 0} | Overs: ${data.over_counter || 0}`;
+    } catch {
+        // ignore
+    }
+}
+
+function viewAllMatches(){
+    loadAllMatches();
+}
+
+// Initial load
 if(matchId) load();
-setInterval(load, 5000);
+loadAllMatches();
+setInterval(loadAllMatches, 10000);
+setInterval(() => { if(matchId) load(); }, 5000);
 </script>
 </body>
 </html>

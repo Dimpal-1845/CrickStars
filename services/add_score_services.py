@@ -1,8 +1,17 @@
 from typing import Dict
 from sqlalchemy.orm import Session
-from ..schemas.qm_balls_schema import QMBallBase as qmb
-from ..db.model import QMBall as QMBallModel
-from ..routers.create_match_route import db_dependency
+
+# Fix the import path - assuming the schema exists
+try:
+    from schemas.qm_balls_schema import QMBallBase as qmb
+except ImportError:
+    # Fallback if import path structure is different
+    from ..schemas.qm_balls_schema import QMBallBase as qmb
+
+try:
+    from db.model import QMBall as QMBallModel, QuickMatch
+except ImportError:
+    from ..db.model import QMBall as QMBallModel, QuickMatch
 
 def _overs_to_balls(over_float: float) -> int:
     overs = int(over_float)
@@ -139,10 +148,10 @@ async def ball_count(
             swap_batsmen = (runs % 2 == 1)
             swap_bowlers = False
 
-    cur_striker_batsman = score.cur_striker_batsman or score.striker_batsman
-    cur_non_striker_batsman = score.current_non_striker_batsman or score.non_striker_batsman
-    cur_striker_bowler = score.current_striker_bowler or score.striker_bowler
-    cur_non_striker_bowler = score.current_non_striker_bowler or score.non_striker_bowler
+    cur_striker_batsman = score.current_striker_batsman or (score.striker_batsman if hasattr(score, 'striker_batsman') else None)
+    cur_non_striker_batsman = score.current_non_striker_batsman or (score.non_striker_batsman if hasattr(score, 'non_striker_batsman') else None)
+    cur_striker_bowler = score.current_striker_bowler or (score.striker_bowler if hasattr(score, 'striker_bowler') else None)
+    cur_non_striker_bowler = score.current_non_striker_bowler or (score.non_striker_bowler if hasattr(score, 'non_striker_bowler') else None)
 
     if swap_batsmen and cur_striker_batsman and cur_non_striker_batsman:
         cur_striker_batsman, cur_non_striker_batsman = cur_non_striker_batsman, cur_striker_batsman
@@ -174,13 +183,34 @@ async def ball_count(
 
 async def finalize_match_score(
         is_dev_recored: bool,
-        db : db_dependency,
-        match_id:int
-
+        db: Session,
+        match_id: int
 ):
+    """Complete the current match and return final score."""
     score = _load_current_score(db, match_id, is_dev_recored)
     if not score or score.is_match_completed:
         return score
-    return qmb(
-        run_scored=score.runs_scored
+    
+    # Mark match as completed
+    final_score = qmb(
+        run_scored=score.run_scored,
+        over_counter=score.over_counter,
+        is_match_completed=1,
+        is_inning_completed=1,
+        is_over_completed=score.is_over_completed,
+        is_first_inning=score.is_first_inning,
+        is_second_inning=score.is_second_inning,
+        current_striker_batsman=score.current_striker_batsman,
+        current_non_striker_batsman=score.current_non_striker_batsman,
+        current_striker_bowler=score.current_striker_bowler,
+        current_non_striker_bowler=score.current_non_striker_bowler,
+        is_deve_record=score.is_deve_record
     )
+    
+    # Update the match record in database to mark as completed
+    match = db.query(QuickMatch).filter(QuickMatch.id == match_id).first()
+    if match:
+        match.match_status = 2  # 2 = completed
+        db.commit()
+    
+    return final_score
